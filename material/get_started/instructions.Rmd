@@ -1,0 +1,258 @@
+---
+title: "Create and change Giotto instructions"
+output: 
+  html_document:
+    number_sections: false
+    toc: true
+pkgdown:
+  as_is: true
+vignette: >
+  %\VignetteIndexEntry{Create and change Giotto instructions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, eval=FALSE}
+# Ensure Giotto Suite is installed
+if(!"Giotto" %in% installed.packages()) {
+  pak::pkg_install("giotto-suite/Giotto")
+}
+library(Giotto)
+```
+
+# Giotto Instructions
+
+Many {Giotto} analyses start with manually defining a set of instructions to use.
+{Giotto} instructions are used to apply settings to `giotto` object behavior at the
+project level. Each `giotto` object needs a set of instructions information
+that can either be manually set or generated with defaults when the `giotto`
+object is first created via either `createGiotto*()` helpers or the S4 class
+constructor `giotto()`.
+Once added, these instructions are stored in the `giotto` object `@instructions`
+slot.
+
+These instruction sets can be created via either the constructor
+```{r, eval=FALSE}
+createGiottoInstructions()
+```
+
+or the generic accessor/replacement function `instructions()` when no `giotto`
+object is provided.
+```{r, eval=FALSE}
+# named params can be provided (same as those in createGiottoInstructions())
+instructions()
+```
+
+These instruction sets are of S3 class `giottoInstructions`, extending `list`.
+
+Specific information about all behaviors that can be set in these instruction
+sets can be found in the `?GiottoClass::createGiottoInstructions` documentation.
+
+# Commonly Used Instructions
+
+The most commonly used settings are:
+
+* `save_dir` - directory to save plot results to
+* save_plot - logical. Whether plotting functions should save outputs to the
+`save_dir`
+* `show_plot` - logical. Whether plotting functions should display the plot
+* `return_plot` - logical. Whether a plot object (for example a {ggplot2} `gg` 
+object) should be returned from the plotting function.
+* `python_path` - filepath to a python binary to use with {Giotto}.
+
+A commonly used set of instructions:
+
+```{r, eval=FALSE}
+results_folder <- "path/to/results"
+python_path <- NULL # NULL will let {Giotto} autodetect
+
+intrs <- createGiottoInstructions(
+    save_dir = results_folder,
+    save_plot = TRUE,
+    show_plot = FALSE,
+    return_plot = FALSE,
+    python_path = python_path
+)
+```
+
+This establishes the location defined by `results_folder` as a common location
+to export all plots created from that `giotto` object as saved images. This can
+be helpful for setting up analysis workflows.
+
+`save_plot` is set to `TRUE`, while `show_plot` is set to `FALSE`. This
+ensures that plots are saved but not plotted directly to the viewer. Outputting
+plots in this manner can save time since directly plotting can be slow.
+
+`return_plot` is set as `FALSE` since it is not necessary in most cases. It
+additionally prevents double plotting form occurring when the plotting function
+output is not assigned into a variable.
+
+A python path to a specified python binary is also specified here, although
+it is usually preferable to set the following global option in the `~/.Rprofile`
+when the same particular path is needed every time, and then allow autodetection
+to find it. (see next section)
+
+```{r, eval=FALSE}
+options("giotto.py_path" = "???")
+```
+
+## Python Environment Considerations
+
+The python environment to use via {reticulate} can be set with the `python_path`
+param. Providing `NULL` will have {Giotto} autodetect for a python environment
+to use (usually the `giotto_env`).
+
+ - See [Giotto python configuration](configuration.html) and/or
+ `?GiottoClass::giotto_python` for more info on how to set up a
+  {Giotto} miniconda python environment and how autodetection of an environment
+  to use works.
+
+Creating a set of instructions will call
+`GiottoClass::set_giotto_python_path()` under the hood and activate a python
+environment.
+
+**Critically, only one {reticulate} python environment can be activated per session.**
+If you would like to avoid activating a python environment,
+you can set the following global option before running a `giotto` or
+`giottoInstructions` object creation function:
+
+```{r, eval=FALSE}
+options("giotto.use_conda" = FALSE)
+```
+
+
+
+# Manipulating Giotto Instructions
+
+## Applying During `giotto` Object Creation
+
+Giotto instructions can be set or retrieved from a `giotto` object at any time.
+They can be initially applied directly at the `giotto` object creation step.
+Here we add in the `giottoInstructions` that we created in the previous section.
+
+```{r, eval=FALSE}
+createGiottoObject(instructions = instrs) # object creation helper
+# or
+giotto(instructions = instrs) # class constructor
+```
+
+*Of course the actual data can also be added via other params during these
+`giotto` object creation steps, they are just omitted for this demonstration*
+
+
+## Getting instructions
+
+You can extract the full set of instructions in a `giotto` object using the
+`instructions()` generic.
+
+```{r, eval=FALSE}
+g <- giotto() # will generate and attach a default set of instructions
+i <- instructions(g)
+force(i)
+```
+
+You can also extract specific parameters of that instruction set
+```{r, eval=FALSE}
+instructions(g, "dpi")
+```
+
+This will also work directly on the `giottoInstructions` object
+```{r, eval=FALSE}
+instructions(i, "dpi")
+```
+
+## Setting instructions
+
+Setting of `giottoInstructions` is also done with the `instructions()` generic.
+
+```{r, eval=FALSE}
+instructions(g) <- instrs # `instrs` had `return_plot = FALSE`
+instructions(g, "return_plot") # this is now FALSE
+```
+
+You can also update one or more specific instructions settings at once either
+directly on the `giottoInstructions` object or to the `giotto` object.
+
+## Single value updates
+
+```{r, eval=FALSE}
+# on the giottoInstructions object
+instructions(i, "dpi") <- 600
+force(i)
+# on the giotto object
+instructions(g, "dpi") <- 600
+force(instructions(g))
+```
+
+## Update multiple value
+
+Multiple value replacement currently only works with the `giotto` object.
+```{r, eval=FALSE}
+instructions(g, c("plot_format", "height")) <- list("tiff", 15)
+force(instructions(g))
+```
+
+# Session Info
+
+```{r, eval=FALSE}
+sessionInfo()
+```
+
+```
+R version 4.4.1 (2024-06-14)
+Platform: aarch64-apple-darwin20
+Running under: macOS 15.3.1
+
+Matrix products: default
+BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.4-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.0
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+time zone: America/New_York
+tzcode source: internal
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] Giotto_4.2.1      GiottoClass_0.4.7
+
+loaded via a namespace (and not attached):
+  [1] colorRamp2_0.1.0            gridExtra_2.3               remotes_2.5.0              
+  [4] rlang_1.1.4                 magrittr_2.0.3              GiottoUtils_0.2.4          
+  [7] matrixStats_1.4.1           compiler_4.4.1              png_0.1-8                  
+ [10] callr_3.7.6                 vctrs_0.6.5                 pkgconfig_2.0.3            
+ [13] SpatialExperiment_1.14.0    crayon_1.5.3                fastmap_1.2.0              
+ [16] backports_1.5.0             magick_2.8.5                XVector_0.44.0             
+ [19] ggraph_2.2.1                utf8_1.2.4                  rmarkdown_2.29             
+ [22] UCSC.utils_1.0.0            ps_1.7.6                    purrr_1.0.2                
+ [25] xfun_0.49                   zlibbioc_1.50.0             cachem_1.1.0               
+ [28] GenomeInfoDb_1.40.0         jsonlite_1.8.9              DelayedArray_0.30.0        
+ [31] tweenr_2.0.3                terra_1.8-29                parallel_4.4.1             
+ [34] R6_2.5.1                    reticulate_1.39.0           pkgload_1.3.4              
+ [37] GenomicRanges_1.56.0        scattermore_1.2             Rcpp_1.0.13-1              
+ [40] SummarizedExperiment_1.34.0 knitr_1.49                  IRanges_2.38.0             
+ [43] Matrix_1.7-0                igraph_2.1.1                tidyselect_1.2.1           
+ [46] rstudioapi_0.16.0           abind_1.4-8                 yaml_2.3.10                
+ [49] viridis_0.6.5               codetools_0.2-20            curl_5.2.3                 
+ [52] processx_3.8.4              pkgbuild_1.4.4              lattice_0.22-6             
+ [55] tibble_3.2.1                Biobase_2.64.0              withr_3.0.2                
+ [58] evaluate_1.0.1              desc_1.4.3                  polyclip_1.10-7            
+ [61] pillar_1.9.0                MatrixGenerics_1.16.0       checkmate_2.3.2            
+ [64] stats4_4.4.1                plotly_4.10.4               generics_0.1.3             
+ [67] S4Vectors_0.42.0            ggplot2_3.5.1               munsell_0.5.1              
+ [70] scales_1.3.0                GiottoData_0.2.15           gtools_3.9.5               
+ [73] glue_1.8.0                  lazyeval_0.2.2              tools_4.4.1                
+ [76] GiottoVisuals_0.2.12        data.table_1.16.2           graphlayouts_1.1.1         
+ [79] tidygraph_1.3.1             cowplot_1.1.3               grid_4.4.1                 
+ [82] tidyr_1.3.1                 colorspace_2.1-1            SingleCellExperiment_1.26.0
+ [85] GenomeInfoDbData_1.2.12     ggforce_0.4.2               cli_3.6.3                  
+ [88] dbMatrix_0.0.0.9023         fansi_1.0.6                 S4Arrays_1.4.0             
+ [91] viridisLite_0.4.2           dplyr_1.1.4                 gtable_0.3.6               
+ [94] digest_0.6.37               BiocGenerics_0.50.0         SparseArray_1.4.1          
+ [97] ggrepel_0.9.6               rjson_0.2.21                htmlwidgets_1.6.4          
+[100] farver_2.1.2                memoise_2.0.1               htmltools_0.5.8.1          
+[103] lifecycle_1.0.4             httr_1.4.7                  MASS_7.3-60.2     
+```
