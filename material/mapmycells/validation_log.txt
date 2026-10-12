@@ -1,0 +1,37 @@
+9.97066e-04 seconds == WARNING: Input data is in CSV format; converting to h5ad file at visiumhd_matrix-2026-10-11-19-40-41.h5ad
+2.61526e+01 seconds == DONE VALIDATING visiumhd_matrix.csv; reformatted file written to visiumhd_matrix_20261011194041.validated_by_MMC.h5ad
+
+2.61753e+01 seconds == CLEANING UP
+2.62493e+01 seconds == Validation run time:  26.194846391677856
+3.35932e-04 seconds == ENV: is_torch_available: False
+3.47376e-04 seconds == ENV: is_cuda_available: False
+3.51191e-04 seconds == ENV: use_torch: False
+3.57866e-04 seconds == ENV: multiprocessing start method: fork
+3.60489e-04 seconds == ENV: Python version: 3.12.14 (main, Aug 24 2026, 00:00:00) [GCC 11.5.0 20240719 (Red Hat 11.5.0-5)]
+9.82523e-04 seconds == ENV: anndata version: 0.13.4
+9.90391e-04 seconds == ENV: numpy version: 2.5.4
+1.26076e-03 seconds == BENCHMARK: spent 2.6369e-04 seconds validating config and copying data
+1.32632e-03 seconds == using precomputed_stats_ABC_revision_230821.h5 for precomputed_stats
+1.32847e-03 seconds == reading taxonomy_tree from precomputed_stats_ABC_revision_230821.h5
+4.45355e-01 seconds == ***Checking to see if we need to map query genes onto reference dataset
+2.60448e+01 seconds == Reference data belongs to species Balb/c mouse:10090
+2.60457e+01 seconds == Reference genes are from authority 'ENSEMBL'
+2.60661e+01 seconds == Mapping input genes to 'Balb/c mouse:10090 -- ENSEMBL' using
+http://github.com/AllenInstitute/mmc_gene_mapper version 0.2.2
+backed by database file: mmc_gene_mapper.2025-08-04.db
+created on: 2025-08-04-18-10-52
+hash: md5:755b0724c2ff00cc199f48e2718a09e5
+9.58818e+01 seconds == Based on 13013 genes, your input data is from species 'Balb/c mouse:10090'
+9.59537e+01 seconds == Input genes are from species 'Balb/c mouse:10090'
+9.59566e+01 seconds == Mapping 13179 input genes from 'symbols' to 'ENSEMBL' (e.g. ['Xkr4' 'Sox17' 'Lypla1' 'Tcea1' 'Rgs20'])
+9.62618e+01 seconds == ***Mapping of query genes to reference dataset complete
+9.69331e+01 seconds == WARNING: 1528 marker genes were not present in the query dataset. They have been ignored
+9.69396e+01 seconds == BENCHMARK: spent 6.7723e-01 seconds creating query marker cache
+9.69683e+01 seconds == Scanning unlabeled data to check that it is >= 0
+9.86597e+01 seconds == Verified that unlabeled data is >= 0
+9.86599e+01 seconds == Running CPU implementation of type assignment.
+1.03032e+02 seconds == Chunking through query data
+1.16409e+02 seconds == BENCHMARK: spent 1.9469e+01 seconds assigning cell types
+1.16409e+02 seconds == Writing marker genes to output file
+1.16573e+02 seconds == MAPPING FROM SPECIFIED MARKERS RAN SUCCESSFULLY
+1.16573e+02 seconds == WRITING OUTPUT AND CLEANING UP
