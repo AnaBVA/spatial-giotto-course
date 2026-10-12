@@ -12,6 +12,10 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = here::here())
+```
+
 # Dataset explanation
 
 [10X genomics](https://www.10xgenomics.com/spatial-transcriptomics/) launched a platform to obtain spatial expression data using a Visium Spatial Gene Expression slide.
@@ -35,7 +39,7 @@ You can find more information about this sample [here](https://support.10xgenomi
 You need to download the expression matrix and spatial information by running these commands:
 
 ```{r, eval=FALSE}
-dir.create("/path/to/data/")
+dir.create("data/")
 
 download.file(url = "https://cf.10xgenomics.com/samples/spatial-exp/1.1.0/V1_Adult_Mouse_Brain/V1_Adult_Mouse_Brain_raw_feature_bc_matrix.tar.gz",
               destfile = "data/V1_Adult_Mouse_Brain_raw_feature_bc_matrix.tar.gz")
@@ -82,7 +86,8 @@ if(!genv_exists){
 library(Giotto)
 
 # Set the results directory to save plots
-results_folder <- "path/to/results"
+results_folder <- "results"
+dir.create(results_folder)
 
 # Optional: Specify the path to a Python executable within a conda or miniconda 
 # environment. If set to NULL (default), the Python executable within the previously installed Giotto environment will be used.
@@ -102,7 +107,7 @@ createGiottoVisiumObject() will look for the standardized files organization fro
 
 ```{r, eval=FALSE}
 ## provide path to visium folder
-data_path <- "/path/to/data/"
+data_path <- "data"
 
 ## read the data
 visium_brain <- createGiottoVisiumObject(visium_dir = data_path,
