@@ -1,0 +1,61 @@
+## Resumen breve de ómicas espaciales
+
+### ¿Por qué necesitamos las tecnologías de ómicas espaciales?
+
+Las ómicas espaciales nos permiten examinar el papel de una o varias células dentro de su contexto natural. Este contexto espacial suele organizarse en múltiples escalas de longitud y tiene en cuenta tanto las células vecinas adyacentes como los niveles más amplios de organización tisular.
+
+```{r, echo=FALSE, out.width="100%", fig.align="center", fig.cap="Captura de la complejidad tisular mediante RNA-seq, scRNA-seq y ómicas espaciales"}
+knitr::include_graphics("https://giotto-suite.github.io/giotto_workshop_2024/img/01_session1/0-spatial_vs_singlecell.png")
+```
+
+### ¿Qué son las ómicas espaciales?
+
+Las ómicas espaciales suelen combinar la secuenciación espacial y/o las técnicas de imagen con el análisis de los resultados obtenidos mediante la ciencia de datos espaciales.
+
+```{r, echo=FALSE, out.width="100%", fig.align="center", fig.cap="Componentes de las ómicas espaciales"}
+knitr::include_graphics("https://giotto-suite.github.io/giotto_workshop_2024/img/01_session1/1-spatial_combo.png")
+```
+
+
+<br>
+
+### ¿Cuáles son las principales tecnologías de ómicas espaciales?
+
+La gran mayoría de las tecnologías espaciales, incluidas las más populares y accesibles, se clasifican en las siguientes categorías:
+
+- Proteómica espacial mediante *multiplex* de anticuerpos.
+- Basadas en imagen: utilizan sondas específicas para detectar y localizar moléculas de RNA directamente en el tejido mediante técnicas de hibridación y microscopía. Transcriptómica espacial basada en **hibridación in situ** (ISH) *multiplex* (e.g. Xenium, CoxMx, MERFISH).
+- Basadas en secuenciació: capturan el RNA presente en distintas regiones del tejido y utilizan la secuenciación para identificar los genes expresados. Transcriptómica espacial basada en secuenciación (e.g. Visium, Visium HD, Slide-seq).
+
+| Característica | Basadas en secuenciación | Basadas en imagen |
+|---|---|---|
+| **Tecnologías** | Visium, Visium HD, Slide-seq, HDST | Xenium, CosMx, MERFISH, seqFISH+ |
+| **Plataformas y características** | **Visium** (10x Genomics): spots de 55 µm, ~5.000 genes detectados por spot.<br>**Visium HD**: resolución de célula única, grillas de 2 µm o 8 µm.<br>**Slide-seq**: spots de ~10 µm.<br>**HDST**: resolución subcelular. | **Xenium** (10x Genomics): panel de ~300–5.000 genes, resolución subcelular.<br>**CosMx** (NanoString): paneles multi-analito, RNA y proteínas.<br>**MERFISH**: FISH multiplexada de alto rendimiento.<br>**seqFISH+**: miles de genes a resolución celular. |
+| **Ventajas principales** | Mayor profundidad de secuenciación.<br> **Transcriptoma completo**, sin selección previa de genes. | Detección de moléculas individuales de RNA.<br>Resolución subcelular: localización del RNA dentro de la célula. |
+| **Limitaciones principales** | Un spot puede contener múltiples células, por lo que puede requerirse deconvolución. | Limitadas al panel de genes predefinido. |
+
+
+```{r, echo=FALSE, out.width="100%", fig.align="center", fig.cap="Lewis et al., revisión en Nat Methods. Características de las tecnologías de ómicas espaciales"}
+knitr::include_graphics("https://giotto-suite.github.io/giotto_workshop_2024/img/01_session1/2-spatial_technologies_web.png")
+```
+
+### Otras ómicas espaciales: ATAC-seq, CUT&Tag, lipidómica, etc.
+
+Existe un número creciente de tecnologías espaciales que permiten caracterizar distintos tipos de analitos moleculares. Un ejemplo es el uso de un enfoque de codificación de barras determinista (desarrollado por el grupo de Rong Fan) para estudiar la cromatina abierta mediante ATAC-seq o la cromatina modificada mediante CUT&Tag, teniendo en cuenta su organización espacial.
+
+```{r, echo=FALSE, out.width="100%", fig.align="center", fig.cap="Vandereyken et al., Nat Rev Genetics. Codificación de barras determinista espacial para ATAC-seq y CUT&Tag"}
+knitr::include_graphics("https://giotto-suite.github.io/giotto_workshop_2024/img/01_session1/3-spatial_other_technologies.png")
+```
+
+<br>
+
+### ¿Cuáles son los distintos tipos de análisis posteriores de datos espaciales?
+
+Existe una amplia y diversa variedad de análisis posteriores que utilizan como entrada distintos tipos y formatos de datos disponibles.
+
+```{r, echo=FALSE, out.width="100%", fig.align="center", fig.cap="Dries, R. et al., Genome Research. Análisis posteriores en el análisis de datos espaciales"}
+knitr::include_graphics("https://giotto-suite.github.io/giotto_workshop_2024/img/01_session1/4-spatial_downstream_analyses.png")
+```
+
+
+
