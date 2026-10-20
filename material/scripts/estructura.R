@@ -47,7 +47,8 @@ getDimReduction(mini_visium,
                 reduction_method = "umap",
                 output = "data.table")
 
-
+getCellMetadata(mini_visium)
+pDataDT(mini_visium)
 
 
 
