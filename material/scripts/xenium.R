@@ -248,59 +248,122 @@ spatInSituPlotPoints(xenium_gobj,
 # pueden llegar a ser anotados en la célula incorrecta.
 
 # En esta paso, usaremos un scRNAseq como referencia para la anotación celular.
-# Descarga el dataset de referencia usando el siguiente comando:
-download.file(url = "https://ftp.ncbi.nlm.nih.gov/geo/samples/GSM7782nnn/GSM7782696/suppl/GSM7782696%5F5p%5Fcount%5Ffiltered%5Ffeature%5Fbc%5Fmatrix%2Eh5",
-              destfile = "xenium_data/GSM7782696_5p_count_filtered_feature_bc_matrix.h5")
+# Descarga el dataset de referencia y léelo usando el siguiente comando:
+sc <- loadGiotto("sc")
 
-## Pre-procesa el scRNAseq
-expr_data_path <- "xenium_data/GSM7782696_5p_count_filtered_feature_bc_matrix.h5"
+plotUMAP(sc, cell_color = "cell_types")
 
-sc <- createGiottoObject(expression = get10Xmatrix_h5(expr_data_path)$`Gene Expression`)
 
-fids <- featIDs(sc)
-mt_genes <- fids[grep("^MT-.*", fids)]
+# Crea el objeto conjunto de Xenium + scRNAseq
 
-sc <- addFeatsPerc(sc, 
-                   expression_values = "raw", 
-                   feats = mt_genes, 
-                   vector_name = "mito")
-ggplot(spatValues(sc, feats = "mito"), aes(x = "cells", y = mito)) + 
-    geom_violin()
+## Identifica los genes en común
+ufids <- intersect(featIDs(xenium_gobj), featIDs(sc)) 
 
-meta <- pDataDT(sc)
-meta[, sum(mito > 50)] # 5006 # filter these out
-meta[, sum(mito < 50)] # 17963
-sc <- subset(sc, subset = mito < 50)
-ggplot(spatValues(sc, feats = "mito"), aes(x = "cells", y = mito)) +
-    geom_violin()
+## Remueve los elementos no comunes entre los objetos
+sc_join <- giotto() |> 
+  setGiotto(sc[[c("expression", "spatial_locs"), "raw"]]) 
+xen_join <- giotto() |>
+  setGiotto(xenium_gobj[[c("expression", "spatial_locs"), "raw", spat_unit = "cell"]])
+
+sc_join <- addCellMetadata(sc_join,
+                           new_metadata = pDataDT(sc)[,c("cell_ID", "cell_types")],
+                           by_column = TRUE)
+
+j <- joinGiottoObjects(
+  list(sc_join[ufids], xen_join[ufids]), 
+  gobject_names = c("sc", "xen"))
+
+instructions(j) <- instructions
 
 ## Procesa el objeto
-sc <- sc |>
-  filterGiotto(
-    expression_threshold = 1,
-    feat_det_in_min_cells = 20,
-    min_det_feats_per_cell = 200
-  ) |>
-  normalizeGiotto() |>
-  calculateHVF() |>
-  runPCA()
+j <- filterGiotto(j,
+                  expression_threshold = 1, 
+                  feat_det_in_min_cells = 1, 
+                  min_det_feats_per_cell = 10)
 
-screePlot(sc, ncp = 50)
+j <- normalizeGiotto(j) # pearson and quantile norms do not work well for this
 
-sc <- runUMAP(sc, 
-              dimensions_to_use = seq(30))
-plotUMAP(sc)
+j <- runPCA(j, 
+            feats_to_use = NULL)
 
-sc <- sc |>
-  createNearestNetwork(dimensions_to_use = seq(30)) |>
-  doLeidenCluster(res = 1.5) # overclustering
+plotPCA(j,
+        cell_color = "list_ID",
+        point_border_stroke = 0,
+        point_size = 0.3)
 
-plotUMAP(sc, 
-          cell_color = "leiden_clus", 
-          point_size = 0.6, 
-          point_border_stroke = 0
-)
+screePlot(j, 
+          ncp = 50)
 
-# Análisis de comunicación celular
+j <- runUMAP(j, 
+             dimensions_to_use = seq(10))
 
+plotUMAP(j, 
+         cell_color = "list_ID",
+         point_size = 0.3, 
+         point_border_stroke = 0, 
+         cell_color_code = c("red", "blue"))
+
+## Procesa el objeto removiendo el efecto de batch
+j <- runGiottoHarmony(j,
+                      vars_use = "list_ID",
+                      dim_reduction_name = "pca",
+                      dimensions_to_use = seq(10),
+                      name = "harmony")
+
+j <- runUMAP(j, 
+             dim_reduction_to_use = "harmony",
+             dim_reduction_name = "harmony",
+             name = "umap_harmony",
+             dimensions_to_use = seq(10))
+
+plotUMAP(j, 
+         cell_color = "cell_types",
+         dim_reduction_name = "umap_harmony", 
+         cell_color_code = c(
+           "turquoise", "azure4", "pink", "tomato", 
+           "chartreuse3", "lightslateblue", "firebrick4", 
+           "blue", "magenta", "cornflowerblue"),
+         point_size = 0.5, 
+         select_cells = spatIDs(j, subset = list_ID == "sc"),
+         point_border_stroke = 0, 
+         other_point_size = 0.3)
+
+## Transferencia de etiquetas
+j <- labelTransfer(j, 
+                   source_cell_ids = spatIDs(j, subset = list_ID == "sc"),
+                   k = 10,
+                   labels = "cell_types",
+                   reduction_method = "harmony",
+                   reduction_name = "harmony",
+                   dimensions_to_use = seq(10))
+
+plotUMAP(j, 
+         cell_color = "trnsfr_cell_types", 
+         dim_reduction_name = "umap_harmony", 
+         cell_color_code = c(
+           "turquoise", "azure4", "pink", "tomato", 
+           "chartreuse3", "lightslateblue", "firebrick4", 
+           "blue", "magenta", "cornflowerblue"),
+         point_size = 0.3,
+         point_border_stroke = 0)
+
+## Agrega la anotación en el Xenium original
+ann_meta <- pDataDT(j)
+ann_meta <- ann_meta[list_ID == "xen",]
+ann_meta[, cell_ID := gsub("^xen-", "", cell_ID)]
+ann_meta <- ann_meta[, .(cell_ID, trnsfr_cell_types, trnsfr_cell_types_prob)]
+
+xenium_gobj <- addCellMetadata(xenium_gobj, 
+                               new_metadata = ann_meta, 
+                               by_column = TRUE, 
+                               column_cell_ID = "cell_ID")
+
+spatInSituPlotPoints(xenium_gobj, 
+                     polygon_fill = "trnsfr_cell_types", 
+                     polygon_fill_as_factor = TRUE,
+                     polygon_line_size = 0,
+                     polygon_fill_code = c(
+                       "turquoise", "azure4", "pink", "tomato", 
+                       "chartreuse3", "lightslateblue", "firebrick4", 
+                       "blue", "magenta", "cornflowerblue"))
 
